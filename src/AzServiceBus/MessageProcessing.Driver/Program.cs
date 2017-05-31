@@ -23,7 +23,7 @@ namespace MessageProcessing.Driver
         static async Task MainAsync(string[] args)
         {
             MessageSenderConfig messageSenderConfig = JsonConvert.DeserializeObject<MessageSenderConfig>(ConfigurationManager.AppSettings["messageSenderConfig"]);
-            sender = await MessageSender.CreateAsync(messageSenderConfig).ConfigureAwait(false);
+            sender = await MessageSender.CreateAsync(messageSenderConfig,new NServiceBusPropertyProvider()).ConfigureAwait(false);
             CreateCart createCart = new CreateCart
             {
                 CartId = "cart-id-1",
@@ -40,7 +40,24 @@ namespace MessageProcessing.Driver
             };
             message.Properties["MessageType"] = "CreateCart";
             await sender.SendMessageAsync(message).ConfigureAwait(false);
-            await sender.CloseAsync();
+            await sender.CloseAsync().ConfigureAwait(false);
+        }
+    }
+
+    public class NServiceBusPropertyProvider : IPropertyProvider
+    {
+        public IEnumerable<KeyValuePair<string, object>> GetProperties<T>(Message<T> message)
+        {
+            var properties = new Dictionary<string, object>();
+            properties["NServiceBus.MessageId"] = message.Id;
+            properties["NServiceBus.CorrelationId"] = message.CorrelationId;
+            properties["NServiceBus.Version"] = "4.7.6";
+            properties["NServiceBus.MessageIntent"] = "Send";
+            properties["NServiceBus.OriginatingEndpoint"] = "";
+            properties["NServiceBus.ContentType"] = "application/json";
+            properties["NServiceBus.EnclosedMessageTypes"] = message.Body.GetType().AssemblyQualifiedName;
+            properties["NServiceBus.OriginatingMachine"] = Environment.MachineName;
+            return properties;
         }
     }
 }
