@@ -1,17 +1,13 @@
-﻿using Microsoft.ServiceBus;
-using Microsoft.ServiceBus.Messaging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.ServiceModel;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MessageProcessing
+﻿namespace MessageProcessing
 {
+    using Microsoft.ServiceBus;
+    using Microsoft.ServiceBus.Messaging;
+    using System;
+    using System.Threading.Tasks;
+
     public static class MessageSenderFactory
     {
-        public static async Task<MessageSender> CreateMessageSenderAsync(MessageSenderConfig messageSenderConfig)
+        public static async Task<Microsoft.ServiceBus.Messaging.MessageSender> CreateMessageSenderAsync(MessageSenderConfig messageSenderConfig)
         {
             var senderFactory = await MessagingFactory.CreateAsync(
                 messageSenderConfig.NamespaceAddress,
