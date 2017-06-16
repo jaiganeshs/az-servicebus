@@ -1,13 +1,8 @@
 ﻿using MessageProcessing.Driver.Messages;
-using Microsoft.ServiceBus;
-using Microsoft.ServiceBus.Messaging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MessageProcessing.Driver
@@ -46,18 +41,32 @@ namespace MessageProcessing.Driver
 
     public class NServiceBusPropertyProvider : IPropertyProvider
     {
+        private const string NsbMessageId = "NServiceBus.MessageId";
+        private const string NsbCorrelationId = "NServiceBus.CorrelationId";
+        private const string NsbVersion = "NServiceBus.Version";
+        private const string NsbMessageIntent = "NServiceBus.MessageIntent";
+        private const string NsbOriginatingEndpoint = "NServiceBus.OriginatingEndpoint";
+        private const string NsbContentType = "NServiceBus.ContentType";
+        private const string NsbEnclosedTypes = "NServiceBus.EnclosedMessageTypes";
+        private const string NsbOriginatingMachine = "NServiceBus.OriginatingMachine";
+        private const string NsbContentTypeValue = "application/json";
+        private const string NsbVersionValue = "4.7.6";
+        private KeyValuePair<string, object> messageIntent = new KeyValuePair<string, object>(NsbMessageIntent, "Send");
+        private KeyValuePair<string, object> messageVersion = new KeyValuePair<string, object>(NsbVersion, NsbVersionValue);
+        private KeyValuePair<string, object> originatingMachine = new KeyValuePair<string, object>(NsbOriginatingMachine, Environment.MachineName);
+        private KeyValuePair<string, object> originatingEndpoint = new KeyValuePair<string, object>(NsbOriginatingEndpoint, "");
+        private KeyValuePair<string, object> contentType = new KeyValuePair<string, object>(NsbContentType, NsbContentTypeValue);
+
         public IEnumerable<KeyValuePair<string, object>> GetProperties<T>(Message<T> message)
         {
-            var properties = new Dictionary<string, object>();
-            properties["NServiceBus.MessageId"] = message.Id;
-            properties["NServiceBus.CorrelationId"] = message.CorrelationId;
-            properties["NServiceBus.Version"] = "4.7.6";
-            properties["NServiceBus.MessageIntent"] = "Send";
-            properties["NServiceBus.OriginatingEndpoint"] = "";
-            properties["NServiceBus.ContentType"] = "application/json";
-            properties["NServiceBus.EnclosedMessageTypes"] = message.Body.GetType().AssemblyQualifiedName;
-            properties["NServiceBus.OriginatingMachine"] = Environment.MachineName;
-            return properties;
+            yield return new KeyValuePair<string, object>(NsbMessageId, message.Id);
+            yield return new KeyValuePair<string, object>(NsbCorrelationId, message.CorrelationId);
+            yield return new KeyValuePair<string, object>(NsbEnclosedTypes, message.Body.GetType().AssemblyQualifiedName);
+            yield return messageIntent;
+            yield return messageVersion;
+            yield return originatingMachine;
+            yield return originatingEndpoint;
+            yield return contentType;
         }
     }
 }
